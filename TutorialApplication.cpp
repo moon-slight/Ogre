@@ -37,7 +37,7 @@ void TutorialApplication::createScene(void)
  
     // Create SceneNodes and attach the Entities to them
     Ogre::SceneNode* headNode1 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode1");
-    Ogre::SceneNode* headNode2 = headNode1->createChildSceneNode("HeadNode2"); //head2 is head1's child
+    Ogre::SceneNode* headNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode2");
     headNode1->attachObject(ogreHead1);
     headNode2->attachObject(ogreHead2);
 
@@ -46,10 +46,15 @@ void TutorialApplication::createScene(void)
 	headNode1->rotate(Ogre::Vector3(0,1,0), Ogre::Degree(-90));
 	headNode1->translate(Ogre::Vector3(20,0,-20));
 
+
+	// scale, rotate, translate each will compile form bottom to top
 	headNode2->scale(Ogre::Vector3(1,1,0.5));
 	headNode2->rotate(Ogre::Vector3(0,1,0), Ogre::Degree(90));
 	headNode2->translate(Ogre::Vector3(-10,0,10));
-	
+	headNode2->rotate(Ogre::Vector3(1,0,0), Ogre::Degree(90));
+	headNode2->scale(Ogre::Vector3(1,0.5,1));
+	headNode2->translate(Ogre::Vector3(0,0,30));
+ 
     // Set the scene's ambient light
     mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5f, 0.5f, 0.5f));
 
