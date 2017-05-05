@@ -30,13 +30,14 @@ TutorialApplication::~TutorialApplication(void)
 //-------------------------------------------------------------------------------------
 void TutorialApplication::createScene(void)
 {
+    // create your scene here :)
     // Create Entities
-    Ogre::Entity* ogreHead1 = mSceneMgr->createEntity("Head1", "ogrehead.mesh"); //right head
-    Ogre::Entity* ogreHead2 = mSceneMgr->createEntity("Head2", "ogrehead.mesh"); //left head
+    Ogre::Entity* ogreHead1 = mSceneMgr->createEntity("Head1", "ogrehead.mesh");
+    Ogre::Entity* ogreHead2 = mSceneMgr->createEntity("Head2", "ogrehead.mesh");
  
     // Create SceneNodes and attach the Entities to them
     Ogre::SceneNode* headNode1 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode1");
-    Ogre::SceneNode* headNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode2");
+    Ogre::SceneNode* headNode2 = headNode1->createChildSceneNode("HeadNode2"); //head2 is head1's child
     headNode1->attachObject(ogreHead1);
     headNode2->attachObject(ogreHead2);
 
@@ -48,7 +49,7 @@ void TutorialApplication::createScene(void)
 	headNode2->scale(Ogre::Vector3(1,1,0.5));
 	headNode2->rotate(Ogre::Vector3(0,1,0), Ogre::Degree(90));
 	headNode2->translate(Ogre::Vector3(-10,0,10));
- 
+	
     // Set the scene's ambient light
     mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5f, 0.5f, 0.5f));
 
