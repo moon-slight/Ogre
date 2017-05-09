@@ -19,56 +19,47 @@ This source file is part of the
 //-------------------------------------------------------------------------------------
 TutorialApplication::TutorialApplication(void)
 {
+
 }
 //-------------------------------------------------------------------------------------
 TutorialApplication::~TutorialApplication(void)
 {
+
 }
 
 //-------------------------------------------------------------------------------------
 void TutorialApplication::createScene(void)
 {
     // create your scene here :)
-    Ogre::Entity* ogreBall[9];
-    Ogre::SceneNode* ballNode[9];
-    Ogre::String ballString[9];
+    // Create Entities
+    Ogre::Entity* ogreHead1 = mSceneMgr->createEntity("Head1", "ogrehead.mesh");
+    Ogre::Entity* ogreHead2 = mSceneMgr->createEntity("Head2", "ogrehead.mesh");
+ 
+    // Create SceneNodes and attach the Entities to them
+    Ogre::SceneNode* headNode1 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode1");
+    Ogre::SceneNode* headNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("HeadNode2");
+    headNode1->attachObject(ogreHead1);
+    headNode2->attachObject(ogreHead2);
 
-	for( int i = 0; i < 9; ++i )
-	{
-		Ogre::StringStream ballSteam;
-		ballSteam << (i + 1);
-		ballString[i] = Ogre::String("Ball") + ballSteam.str();
+    // Set transformations
+	headNode1->scale(Ogre::Vector3(1,1,1));
+	headNode1->rotate(Ogre::Vector3(0,1,0), Ogre::Degree(-90));
+	headNode1->translate(Ogre::Vector3(20,0,-20));
 
-	    // Create Entities
-		ogreBall[i] = mSceneMgr->createEntity(ballString[i], "ball.mesh");
-		ogreBall[i]->setMaterialName(ballString[i]);
-
-		// Create SceneNodes and attach the Entities to them
-		if( i == 0 )
-		{
-			ballNode[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode(ballString[i]);
-			ballNode[i]->rotate(Ogre::Vector3(0,0,1),Ogre::Degree(30));
-			ballNode[i]->translate(Ogre::Vector3(1000,-1500,0));
-		}
-		else
-		{
-			ballNode[i] = ballNode[i-1]->createChildSceneNode(ballString[i]);
-
-			// Set transformations
-			ballNode[i]->rotate(Ogre::Vector3(0,0,1),Ogre::Degree(30));
-			ballNode[i]->translate(Ogre::Vector3(500+i*100,0,0));
-		}
-
-		ballNode[i]->attachObject(ogreBall[i]);
-	}
+	// When you do transform not only onc time, compiler will transform mesh according form bottom line to top
+	headNode2->scale(Ogre::Vector3(1,1,0.5));
+	headNode2->rotate(Ogre::Vector3(0,1,0), Ogre::Degree(90));
+	headNode2->translate(Ogre::Vector3(-10,0,10));
+	headNode2->rotate(Ogre::Vector3(1,0,0), Ogre::Degree(90));
+	headNode2->scale(Ogre::Vector3(1,0.5,1));
+	headNode2->translate(Ogre::Vector3(0,0,30));
  
     // Set the scene's ambient light
     mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5f, 0.5f, 0.5f));
 
-	// Create a Light, set its position and color
+	// Create a Light and set its position
     Ogre::Light* light = mSceneMgr->createLight("MainLight");
-    light->setPosition(1000.0f, 4000.0f, 2500.0f);
-	light->setSpecularColour(Ogre::ColourValue::White);
+    light->setPosition(20.0f, 80.0f, 50.0f);
 }
 
 
