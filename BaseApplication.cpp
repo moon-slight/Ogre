@@ -20,18 +20,22 @@ This source file is part of the
 BaseApplication::BaseApplication(void)
     : mRoot(0),
     mCamera(0),
+	mCameraNode(0),
+	node(0),
     mSceneMgr(0),
     mWindow(0),
     mResourcesCfg(Ogre::StringUtil::BLANK),
     mPluginsCfg(Ogre::StringUtil::BLANK),
     mTrayMgr(0),
-    mCameraMan(0),
+    //mCameraMan(0),
     mDetailsPanel(0),
     mCursorWasVisible(false),
     mShutDown(false),
     mInputManager(0),
     mMouse(0),
-    mKeyboard(0)
+    mKeyboard(0),
+	mDirection(Ogre::Vector3::ZERO),
+	mMove(1000)
 {
 }
 
@@ -39,7 +43,7 @@ BaseApplication::BaseApplication(void)
 BaseApplication::~BaseApplication(void)
 {
     if (mTrayMgr) delete mTrayMgr;
-    if (mCameraMan) delete mCameraMan;
+    //if (mCameraMan) delete mCameraMan;
 
     //Remove ourself as a Window listener
     Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
@@ -75,18 +79,21 @@ void BaseApplication::chooseSceneManager(void)
 //-------------------------------------------------------------------------------------
 void BaseApplication::createCamera(void)
 {
-    // Create the camera
-    mCamera = mSceneMgr->createCamera("PlayerCam");
-
-    // Position it at 500 in Z direction
-	mCamera->setPosition(Ogre::Vector3(0,0,5000));
-    // Look back along -Z
-	mCamera->lookAt(Ogre::Vector3(0,0,-300));
+	mCamera = mSceneMgr->createCamera("PlayerCam");
+	//node = mSceneMgr->getRootSceneNode()->createChildSceneNode("playercam", Ogre::Vector3(0, 0, 0));
+	//node->yaw(Ogre::Degree(0));
+    // Set position
+	//mCameraNode->setPosition(Ogre::Vector3(0,0,0));
+    //mCameraNode = node;
+	mCameraNode->attachObject(mCamera);
+	// Look back along -Z
+	mCamera->lookAt(Ogre::Vector3(0,0,-1));
 	mCamera->setNearClipDistance(5);
 
-    mCameraMan = new OgreBites::SdkCameraMan(mCamera);   // create a default camera controller
-	mCameraMan->setTopSpeed(1500);
+    //mCameraMan = new OgreBites::SdkCameraMan(mCamera);   // create a default camera controller
+	//mCameraMan->setTopSpeed(3000);
 }
+
 //-------------------------------------------------------------------------------------
 void BaseApplication::createFrameListener(void)
 {
@@ -128,13 +135,8 @@ void BaseApplication::createFrameListener(void)
     items.push_back("cam.oX");
     items.push_back("cam.oY");
     items.push_back("cam.oZ");
-    items.push_back("");
-    items.push_back("Filtering");
-    items.push_back("Poly Mode");
 
     mDetailsPanel = mTrayMgr->createParamsPanel(OgreBites::TL_NONE, "DetailsPanel", 200, items);
-    mDetailsPanel->setParamValue(9, "Bilinear");
-    mDetailsPanel->setParamValue(10, "Solid");
     mDetailsPanel->hide();
 
     mRoot->addFrameListener(this);
@@ -142,6 +144,7 @@ void BaseApplication::createFrameListener(void)
 //-------------------------------------------------------------------------------------
 void BaseApplication::destroyScene(void)
 {
+
 }
 //-------------------------------------------------------------------------------------
 void BaseApplication::createViewports(void)
@@ -251,10 +254,10 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
     mMouse->capture();
 
     mTrayMgr->frameRenderingQueued(evt);
-
-    if (!mTrayMgr->isDialogVisible())
+	//mCameraNode->translate(mDirection * evt.timeSinceLastFrame, Ogre::Node::TS_LOCAL);
+   
+	if (!mTrayMgr->isDialogVisible())
     {
-        mCameraMan->frameRenderingQueued(evt);   // if dialog isn't up, then update the camera
         if (mDetailsPanel->isVisible())   // if details panel is visible, then update its contents
         {
             mDetailsPanel->setParamValue(0, Ogre::StringConverter::toString(mCamera->getDerivedPosition().x));
@@ -274,13 +277,14 @@ bool BaseApplication::keyPressed( const OIS::KeyEvent &arg )
 {
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
 
-    if (arg.key == OIS::KC_F)   // toggle visibility of advanced frame stats
-    {
-        mTrayMgr->toggleAdvancedFrameStats();
-    }
-    else if (arg.key == OIS::KC_G)   // toggle visibility of even rarer debugging details
-    {
-        if (mDetailsPanel->getTrayLocation() == OgreBites::TL_NONE)
+	switch(arg.key)
+	{
+	case OIS::KC_F:
+		 mTrayMgr->toggleAdvancedFrameStats();
+		 break;
+
+	case OIS::KC_G:
+		if (mDetailsPanel->getTrayLocation() == OgreBites::TL_NONE)
         {
             mTrayMgr->moveWidgetToTray(mDetailsPanel, OgreBites::TL_TOPRIGHT, 0);
             mDetailsPanel->show();
@@ -290,104 +294,60 @@ bool BaseApplication::keyPressed( const OIS::KeyEvent &arg )
             mTrayMgr->removeWidgetFromTray(mDetailsPanel);
             mDetailsPanel->hide();
         }
-    }
-    else if (arg.key == OIS::KC_T)   // cycle polygon rendering mode
-    {
-        Ogre::String newVal;
-        Ogre::TextureFilterOptions tfo;
-        unsigned int aniso;
+		break;
 
-        switch (mDetailsPanel->getParamValue(9).asUTF8()[0])
-        {
-        case 'B':
-            newVal = "Trilinear";
-            tfo = Ogre::TFO_TRILINEAR;
-            aniso = 1;
-            break;
-        case 'T':
-            newVal = "Anisotropic";
-            tfo = Ogre::TFO_ANISOTROPIC;
-            aniso = 8;
-            break;
-        case 'A':
-            newVal = "None";
-            tfo = Ogre::TFO_NONE;
-            aniso = 1;
-            break;
-        default:
-            newVal = "Bilinear";
-            tfo = Ogre::TFO_BILINEAR;
-            aniso = 1;
-        }
+	case OIS::KC_W:
+		mDirection.z = -mMove;
+		break;
 
-        Ogre::MaterialManager::getSingleton().setDefaultTextureFiltering(tfo);
-        Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(aniso);
-        mDetailsPanel->setParamValue(9, newVal);
-    }
-    else if (arg.key == OIS::KC_R)   // cycle polygon rendering mode
-    {
-        Ogre::String newVal;
-        Ogre::PolygonMode pm;
+	case OIS::KC_A:
+		mDirection.x = -mMove;
+		break;
+		
+	case OIS::KC_S:
+		mDirection.x = mMove;
+		break;
 
-        switch (mCamera->getPolygonMode())
-        {
-        case Ogre::PM_SOLID:
-            newVal = "Wireframe";
-            pm = Ogre::PM_WIREFRAME;
-            break;
-        case Ogre::PM_WIREFRAME:
-            newVal = "Points";
-            pm = Ogre::PM_POINTS;
-            break;
-        default:
-            newVal = "Solid";
-            pm = Ogre::PM_SOLID;
-        }
+	case OIS::KC_D:
+		mDirection.z = mMove;
+		break;
 
-        mCamera->setPolygonMode(pm);
-        mDetailsPanel->setParamValue(10, newVal);
-    }
-    else if(arg.key == OIS::KC_F5)   // refresh all textures
-    {
-        Ogre::TextureManager::getSingleton().reloadAll();
-    }
-    else if (arg.key == OIS::KC_SYSRQ)   // take a screenshot
-    {
-        mWindow->writeContentsToTimestampedFile("screenshot", ".jpg");
-    }
-    else if (arg.key == OIS::KC_ESCAPE)
-    {
-        mShutDown = true;
-    }
+	case OIS::KC_SYSRQ:
+		mWindow->writeContentsToTimestampedFile("screenshot", ".jpg");
+		break;
 
-    mCameraMan->injectKeyDown(arg);
+	case OIS::KC_ESCAPE:
+		mShutDown = true;
+		break;
+
+	default :
+		break;
+	}
+
     return true;
 }
 
 bool BaseApplication::keyReleased( const OIS::KeyEvent &arg )
 {
-    mCameraMan->injectKeyUp(arg);
     return true;
 }
 
 bool BaseApplication::mouseMoved( const OIS::MouseEvent &arg )
 {
     if (mTrayMgr->injectMouseMove(arg)) return true;
-    mCameraMan->injectMouseMove(arg);
+    //mCameraMan->injectMouseMove(arg);
     return true;
 }
 
 bool BaseApplication::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     if (mTrayMgr->injectMouseDown(arg, id)) return true;
-    mCameraMan->injectMouseDown(arg, id);
     return true;
 }
 
 bool BaseApplication::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     if (mTrayMgr->injectMouseUp(arg, id)) return true;
-    mCameraMan->injectMouseUp(arg, id);
     return true;
 }
 

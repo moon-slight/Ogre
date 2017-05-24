@@ -19,10 +19,12 @@ This source file is part of the
 //-------------------------------------------------------------------------------------
 TutorialApplication::TutorialApplication(void)
 {
+
 }
 //-------------------------------------------------------------------------------------
 TutorialApplication::~TutorialApplication(void)
 {
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -33,6 +35,7 @@ void TutorialApplication::createScene(void)
     Ogre::SceneNode* ballNode[9];
     Ogre::String ballString[9];
 
+	//crreate nine balls
 	for( int i = 0; i < 9; ++i )
 	{
 		Ogre::StringStream ballSteam;
@@ -63,13 +66,16 @@ void TutorialApplication::createScene(void)
 	}
  
     // Set the scene's ambient light
-    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5f, 0.5f, 0.5f));
+    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.1f, 0.1f, 0.1f));
 
 	// Create a Light, set its position and color
     Ogre::Light* light = mSceneMgr->createLight("MainLight");
-    light->setPosition(1000.0f, 4000.0f, 2500.0f);
+	//node = mSceneMgr->getRootSceneNode()->createChildSceneNode("light", Ogre::Vector3(0, 0, -5));
+	//node->attachObject(light);
+    //light->setPosition(1000.0f, 4000.0f, 2500.0f);
 	light->setSpecularColour(Ogre::ColourValue::White);
 }
+
 
 
 
